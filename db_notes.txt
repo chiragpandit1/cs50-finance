@@ -1,0 +1,36 @@
+transaction_details
+user_id,asset,transaction_type(Buy/Sell),quantity,price, transaction_id
+34(Chirag) ,AAPL,    BUY,                     5.5,   500,    134
+34(Chirag) ,AAPL,    SELL,                   -4.6,   600,    XXX
+34(Chirag) ,GOOG,    SELL,                   -6.6,   34.5,   XVVR
+34(Chirag) ,GOOG,    BUY,                     10.6,  15,     RTF
+
+ CREATE TABLE transaction_details (
+     transaction_id INTEGER,
+     user_id INTEGER,
+     asset_ticker TEXT NOT NULL,
+     transaction_type TEXT CHECK( transaction_type IN ('BUY','SELL') ) NOT NULL,
+     quantity REAL,
+     price REAL,
+     transaction_date DATETIME DEFAULT current_timestamp,
+     PRIMARY KEY(transaction_id),
+     FOREIGN KEY (user_id) REFERENCES users(id)
+  );
+
+  INSERT INTO transaction_details
+        (user_id, asset_ticker, transaction_type, quantity,price, transaction_date)
+  VALUES
+        (1, 'AAPL', 'BUY', 20.2, 201.2, datetime('now')),
+        (1, 'AAPL', 'BUY', 20.2, 203.2, datetime('now'));
+
+
+
+holdings - Or calculate this table on runtime
+user_id,asset_ticker,quantity
+
+Get holdings for that user
+SELECT DISTINCT (asset_ticker), SUM(quantity), SUM(price) FROM transaction_details WHERE user_id=1 GROUP BY asset_ticker;
+
+
+
+

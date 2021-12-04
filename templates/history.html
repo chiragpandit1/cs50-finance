@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Log In
+{% endblock %}
+
+{% block main %}
+        <div>
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                    <th scope="col">Transaction ID</th>
+                    <th scope="col">Transaction Type</th>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Shares Quantity</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Transacted On</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in rows %}
+                    <tr>
+                        <td>{{row.transaction_id}}</td>
+                        <td>{{row.transaction_type}}</td>
+                        <td scope="row">{{row.asset_ticker}}</td>
+                        <td>{{row.quantity}}</td>
+                        <td>{{row.price}}</td>
+                        <td>{{row.transaction_date}}</td>
+                    </tr>
+                {% endfor %}
+
+
+              </tbody>
+            </table>
+        </div>
+        {{row}}
+{% endblock %}

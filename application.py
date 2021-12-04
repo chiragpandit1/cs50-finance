@@ -46,21 +46,158 @@ if not os.environ.get("API_KEY"):
 @login_required
 def index():
     """Show portfolio of stocks"""
-    return render_template("home.html")
+    # return_home_page()
+
+    user_record = db.execute("SELECT * FROM users WHERE id = ?", session["user_id"])
+
+    user_holdings = db.execute("SELECT DISTINCT (asset_ticker),"
+                               " SUM(quantity) as quantity,"
+                               " SUM(price) AS price"
+                               " FROM transaction_details"
+                               " WHERE user_id=?"
+                               " GROUP BY asset_ticker", session["user_id"])
+
+    # TODO - Add details in user_holdings about current price of that stock and its company name
+
+    # Add details in user_holdings about current price of that stock and its company name
+    homepage_records = [];
+    user_margin = float(user_record[0]["cash"])
+    asset_total = user_margin
+    for holding in user_holdings:
+        ticker_details = lookup(holding['asset_ticker'])
+        current_share_price = float(ticker_details['price'])
+        print(f"Current share price of {holding['asset_ticker']} is {current_share_price}")
+
+        # Fetch share's current prices.
+        print(f"Adding {holding['price']} with {asset_total}")
+        asset_total += float(holding['price'])
+        homepage_record = {
+            "asset_ticker": holding["asset_ticker"],
+            "ticker_current_price": usd(current_share_price),
+            "ticker_detail_name": ticker_details['name'],
+            "total_quantity": holding['quantity'],
+            "total_price": usd(holding['price'])
+        }
+        homepage_records.append(homepage_record)
+
+    return render_template("home.html",
+                           cash=usd(float(user_record[0]["cash"])),
+                           asset_total=usd(asset_total),
+                           user_holdings=homepage_records)
 
 
 @app.route("/buy", methods=["GET", "POST"])
 @login_required
 def buy():
-    """Buy shares of stock"""
-    return apology("TODO")
+    if request.method == "GET":
+        return render_template("buy.html")
+
+    elif request.method == "POST":
+
+        symbol = request.form.get("symbol")
+        quantity = float(request.form.get("quantity"))
+
+        # Query the IEX Stocks API - # Send the response back to the page
+        response = lookup(symbol)
+
+        if not response:
+            print(response)
+            return apology("Unable to buy now!", 501);
+        else:
+            # Response - {{response.name}} ({{response.symbol}}) costs ${{response.price}}
+            print(response)
+
+            name = response['name']
+            print(name)
+
+            symbol = response['symbol']
+            print(symbol)
+
+            price = response['price']
+            print(price)
+            price = float(price)
+            print(price)
+
+            rows = db.execute("SELECT * FROM users WHERE id = ?", session["user_id"])
+
+            # Retrieve the total margin / cash user has on their account
+            user_margin = float(rows[0]["cash"])
+
+            # Buy Shares of that stock multiplied by quantity
+            total_price = price * quantity
+            if user_margin < total_price:
+                return apology("Unable to buy now, Not sufficient cash!", 403);
+            else:
+                # Reduce user margin
+                user_margin = user_margin - total_price
+
+                # Update user_margin / cash on backend for that user -
+                # TODO - UPDATE TABLE user SET cash = user_margin WHERE id = session["user_id"]
+                db.execute("UPDATE users SET cash = ? WHERE id = ?", user_margin, session["user_id"])
+
+                # TODO - Add the record in transactions_details, and holdings TABLES where userID = session
+                db.execute("  INSERT INTO transaction_details "
+                           "   (user_id, asset_ticker, transaction_type, quantity, price, transaction_date) "
+                           "  VALUES (?, ?, 'BUY', ?, ?, datetime('now'))",
+                           session["user_id"], symbol, quantity, total_price)
+
+                success_message = f"Bought {quantity} shares for {name}({symbol}) at {price}"
+                print(f"{success_message}, \nNew User Margin Available = {usd(user_margin)}")
+
+                # return success page
+                flash(f"{success_message}")
+                # return_home_page()
+
+                """Show portfolio of stocks"""
+                # return_home_page()
+
+                user_record = db.execute("SELECT * FROM users WHERE id = ?", session["user_id"])
+
+                user_holdings = db.execute("SELECT DISTINCT (asset_ticker),"
+                                           " SUM(quantity) as quantity,"
+                                           " SUM(price) AS price"
+                                           " FROM transaction_details"
+                                           " WHERE user_id=?"
+                                           " GROUP BY asset_ticker", session["user_id"])
+
+                # TODO - Add details in user_holdings about current price of that stock and its company name
+
+                # Add details in user_holdings about current price of that stock and its company name
+                homepage_records = [];
+                user_margin = float(user_record[0]["cash"])
+                asset_total = user_margin
+                for holding in user_holdings:
+                    ticker_details = lookup(holding['asset_ticker'])
+                    current_share_price = float(ticker_details['price'])
+                    print(f"Current share price of {holding['asset_ticker']} is {current_share_price}")
+
+                    # Fetch share's current prices.
+                    print(f"Adding {holding['price']} with {asset_total}")
+                    asset_total += float(holding['price'])
+                    homepage_record = {
+                        "asset_ticker": holding["asset_ticker"],
+                        "ticker_current_price": usd(current_share_price),
+                        "ticker_detail_name": ticker_details['name'],
+                        "total_quantity": holding['quantity'],
+                        "total_price": usd(holding['price'])
+                    }
+                    homepage_records.append(homepage_record)
+
+                return render_template("home.html",
+                                       cash=usd(float(user_record[0]["cash"])),
+                                       asset_total=usd(asset_total),
+                                       user_holdings=homepage_records)
+
+            # Redirect user back to quote details_page - # {'name': 'Apple Inc', 'price': 149.99, 'symbol': 'AAPL'}
+            # return render_template("buy.html", response=response)
 
 
 @app.route("/history")
 @login_required
 def history():
     """Show history of transactions"""
-    return apology("TODO")
+    rows = db.execute("SELECT * FROM transaction_details WHERE user_id=?", session["user_id"])
+    return render_template("history.html", rows=rows)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -113,13 +250,18 @@ def logout():
 @app.route("/quote", methods=["GET", "POST"])
 @login_required
 def quote():
-
-
     if request.method == "GET":
         return render_template("quote.html")
 
     elif request.method == "POST":
-        return apology("TODO")
+
+        symbol = request.form.get("symbol")
+
+        # Query the IEX Stocks API - # Send the response back to the page
+        response = lookup(symbol)  # print(response)
+
+        # Redirect user back to quote details_page - # {'name': 'Apple Inc', 'price': 149.99, 'symbol': 'AAPL'}
+        return render_template("quote.html", response=response)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -164,12 +306,24 @@ def register():
 
         else:  # if user does not exists then -> store the value for username and generated password hash in db
             db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", username, password_hash)
+            user_details = db.execute("SELECT * FROM users WHERE username=? ", username)
+            session["user_id"] = user_details[0]["id"]
 
             # return success page
             flash("Registered!")
-            return render_template("home.html")
 
-        # return apology("TODO")
+            user_record = db.execute("SELECT * FROM users WHERE id = ?", session["user_id"])
+
+            user_holdings = db.execute("SELECT DISTINCT (asset_ticker),"
+                                       " SUM(quantity) AS quantity,"
+                                       " SUM(price) AS price"
+                                       " FROM transaction_details"
+                                       " WHERE user_id=?"
+                                       " GROUP BY asset_ticker", session["user_id"])
+
+            return render_template("home.html",
+                                   cash=usd(float(user_record[0]["cash"])),
+                                   user_holdings=user_holdings)
 
 
 @app.route("/sell", methods=["GET", "POST"])

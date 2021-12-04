@@ -11,25 +11,42 @@
                 <tr>
                   <th scope="col">Symbol</th>
                   <th scope="col">Name</th>
-                  <th scope="col">Shares</th>
+                  <th scope="col">Shares Quantity</th>
                   <th scope="col">Price</th>
-                <th scope="col">TOTAL</th></tr>
+                  <th scope="col">TOTAL</th>
+                </tr>
               </thead>
               <tbody>
-                <tr>
-                  <th scope="row">CASH</th>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                <td>$1000000</td></tr>
+
+                {% for row in user_holdings %}
+                    <tr>
+                        <td>{{row.asset_ticker}}</td>
+                        <td>{{row.ticker_detail_name}}</td>
+                        <td scope="row">{{row['total_quantity']}}</td>
+                        <td>{{row.ticker_current_price}}</td>
+                        <td>{{row['total_price']}}</td>
+                    </tr>
+                {% endfor %}
 
                 <tr>
-                  <th scope="row"></th>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                <td>$1000000</td></tr>
+                      <td scope="row">Cash / Margin</td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td>{{cash}}</td>
+                </tr>
+
+                <tr>
+                      <th scope="row">Total</th>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td>{{asset_total}}</td>
+                </tr>
               </tbody>
             </table>
+<!--            {{user_holdings}}-->
+<!--            [{'asset_ticker': 'AAPL', 'SUM(quantity)': 163.4, 'SUM(price)': 20310.72}, {'asset_ticker': 'DUOL', 'SUM(quantity)': 1.0, 'SUM(price)': 109.06}, {'asset_ticker': 'GOOG', 'SUM(quantity)': 1.0, 'SUM(price)': 2850.41}]-->
         </div>
+
 {% endblock %}

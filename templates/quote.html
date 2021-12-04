@@ -5,10 +5,19 @@
 {% endblock %}
 
 {% block main %}
-    <form action="/quote" method="post">
-        <div class="form-group">
-            <input autocomplete="off" autofocus class="form-control" name="symbol" placeholder="Symbol" type="text"/>
-        </div>
-        <button class="btn btn-primary" type="submit">Quote</button>
-    </form>
+
+    {% if response %}
+        A share of {{response.name}} ({{response.symbol}}) costs ${{response.price}}.
+        <br/>
+<!--    {% elif response == "None" %}-->
+<!--        Unable to find the stock details-->
+    {% else %}
+        <form action="/quote" method="post">
+            <div class="form-group">
+                <input autocomplete="off" autofocus class="form-control" name="symbol" placeholder="Symbol" type="text"/>
+            </div>
+            <button class="btn btn-primary" type="submit">Quote</button>
+        </form>
+    {% endif %}
+
 {% endblock %}
