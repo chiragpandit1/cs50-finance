@@ -46,8 +46,10 @@ if not os.environ.get("API_KEY"):
 @login_required
 def index():
     """Show portfolio of stocks"""
-    # return_home_page()
+    return render_homepage()
 
+
+def render_homepage():
     user_record = db.execute("SELECT * FROM users WHERE id = ?", session["user_id"])
 
     user_holdings = db.execute("SELECT DISTINCT (asset_ticker),"
@@ -84,7 +86,6 @@ def index():
                            cash=usd(float(user_record[0]["cash"])),
                            asset_total=usd(asset_total),
                            user_holdings=homepage_records)
-
 
 @app.route("/buy", methods=["GET", "POST"])
 @login_required
@@ -146,47 +147,7 @@ def buy():
 
                 # return success page
                 flash(f"{success_message}")
-                # return_home_page()
-
-                """Show portfolio of stocks"""
-                # return_home_page()
-
-                user_record = db.execute("SELECT * FROM users WHERE id = ?", session["user_id"])
-
-                user_holdings = db.execute("SELECT DISTINCT (asset_ticker),"
-                                           " SUM(quantity) as quantity,"
-                                           " SUM(price) AS price"
-                                           " FROM transaction_details"
-                                           " WHERE user_id=?"
-                                           " GROUP BY asset_ticker", session["user_id"])
-
-                # TODO - Add details in user_holdings about current price of that stock and its company name
-
-                # Add details in user_holdings about current price of that stock and its company name
-                homepage_records = [];
-                user_margin = float(user_record[0]["cash"])
-                asset_total = user_margin
-                for holding in user_holdings:
-                    ticker_details = lookup(holding['asset_ticker'])
-                    current_share_price = float(ticker_details['price'])
-                    print(f"Current share price of {holding['asset_ticker']} is {current_share_price}")
-
-                    # Fetch share's current prices.
-                    print(f"Adding {holding['price']} with {asset_total}")
-                    asset_total += float(holding['price'])
-                    homepage_record = {
-                        "asset_ticker": holding["asset_ticker"],
-                        "ticker_current_price": usd(current_share_price),
-                        "ticker_detail_name": ticker_details['name'],
-                        "total_quantity": holding['quantity'],
-                        "total_price": usd(holding['price'])
-                    }
-                    homepage_records.append(homepage_record)
-
-                return render_template("home.html",
-                                       cash=usd(float(user_record[0]["cash"])),
-                                       asset_total=usd(asset_total),
-                                       user_holdings=homepage_records)
+                return render_homepage()
 
             # Redirect user back to quote details_page - # {'name': 'Apple Inc', 'price': 149.99, 'symbol': 'AAPL'}
             # return render_template("buy.html", response=response)
@@ -286,7 +247,7 @@ def register():
             return apology("Unable to register, must provide password", 422)
 
         # Check whether either password does not matches
-        password_again = request.form.get("password_again")
+        password_again = request.form.get("confirmation")
         if not password_again:
             return apology("Unable to register, please type password again", 422)
 
