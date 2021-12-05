@@ -231,7 +231,8 @@ def quote():
             return apology("Unable to buy now, Ticket invalid!", 400);
 
         # Redirect user back to quote details_page - # {'name': 'Apple Inc', 'price': 149.99, 'symbol': 'AAPL'}
-        return render_template("quote.html", response=response)
+        # print(f"{usd(response['price'])}")
+        return render_template("quote.html", response=response, price=usd(response['price']))
 
 
 @app.route("/register", methods=["GET", "POST"])
