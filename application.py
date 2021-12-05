@@ -216,7 +216,7 @@ def quote():
 
     elif request.method == "POST":
 
-        symbol = request.form.get("shares")
+        symbol = request.form.get("symbol")
 
         # Query the IEX Stocks API - # Send the response back to the page
         response = lookup(symbol)  # print(response)
@@ -263,7 +263,7 @@ def register():
         print(rows)
 
         if len(rows) != 0:  # if user exists, Show an error message on that form that user already exists
-            return apology("Unable to register, User already registered, Please login to use CS50 finance", 422)
+            return apology("Unable to register, User already registered, Please login to use CS50 finance", 400)
 
         else:  # if user does not exists then -> store the value for username and generated password hash in db
             db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", username, password_hash)
