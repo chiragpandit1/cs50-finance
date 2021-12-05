@@ -94,6 +94,10 @@ def buy():
     elif request.method == "POST":
 
         symbol = request.form.get("symbol")
+
+        if request.form.get("shares").isalpha():
+            return apology("Please provide valid numeric quantity", 400)
+
         quantity = float(request.form.get("shares"))
 
         if not request.form.get("symbol"):
