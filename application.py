@@ -95,8 +95,8 @@ def buy():
 
     elif request.method == "POST":
 
-        symbol = request.form.get("shares")
-        quantity = float(request.form.get("quantity"))
+        symbol = request.form.get("symbol")
+        quantity = float(request.form.get("shares"))
 
         # Query the IEX Stocks API - # Send the response back to the page
         response = lookup(symbol)
@@ -218,8 +218,13 @@ def quote():
 
         symbol = request.form.get("symbol")
 
+        # handle blank Symbol - 400
+
         # Query the IEX Stocks API - # Send the response back to the page
         response = lookup(symbol)  # print(response)
+
+        # handle invalid Symbol - 400
+
 
         # Redirect user back to quote details_page - # {'name': 'Apple Inc', 'price': 149.99, 'symbol': 'AAPL'}
         return render_template("quote.html", response=response)
