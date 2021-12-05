@@ -232,7 +232,7 @@ def quote():
 
         # handle blank Symbol - 400
         if not request.form.get("symbol"):
-            return apology("Must provide Ticker Symbol", 403)
+            return apology("Must provide Ticker Symbol", 400)
 
         symbol = request.form.get("symbol")
 
