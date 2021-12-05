@@ -59,8 +59,6 @@ def render_homepage():
                                " WHERE user_id=?"
                                " GROUP BY asset_ticker", session["user_id"])
 
-    # TODO - Add details in user_holdings about current price of that stock and its company name
-
     # Add details in user_holdings about current price of that stock and its company name
     homepage_records = [];
     user_margin = float(user_record[0]["cash"])
@@ -98,7 +96,17 @@ def buy():
         symbol = request.form.get("symbol")
         quantity = float(request.form.get("shares"))
 
-        # TODO - :(buy handles fractional, negative, and non-numeric shares - # expected status code 400, but got 200
+        if not request.form.get("symbol"):
+            return apology("Please provide ticker symbol", 400)
+
+        if not request.form.get("shares"):
+            return apology("Please provide number of shares / quantity", 400)
+        else:
+            # TODO - :(buy handles fractional, negative, and non-numeric shares -
+            if not quantity.is_integer():
+                return apology("Please provide number of shares / quantity not in fractions", 400)
+            if quantity <= 0:
+                return apology("Please provide number of shares / quantity in positive integer", 400)
 
         # Query the IEX Stocks API - # Send the response back to the page
         response = lookup(symbol)
@@ -218,9 +226,11 @@ def quote():
 
     elif request.method == "POST":
 
-        symbol = request.form.get("symbol")
-
         # handle blank Symbol - 400
+        if not request.form.get("symbol"):
+            return apology("Must provide Ticker Symbol", 403)
+
+        symbol = request.form.get("symbol")
 
         # Query the IEX Stocks API - # Send the response back to the page
         response = lookup(symbol)  # print(response)
@@ -231,7 +241,6 @@ def quote():
             return apology("Unable to buy now, Ticket invalid!", 400);
 
         # Redirect user back to quote details_page - # {'name': 'Apple Inc', 'price': 149.99, 'symbol': 'AAPL'}
-        # print(f"{usd(response['price'])}")
         return render_template("quote.html", response=response, price=usd(response['price']))
 
 
