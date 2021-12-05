@@ -101,12 +101,12 @@ def buy():
 
         if not request.form.get("shares"):
             return apology("Please provide number of shares / quantity", 400)
-        else:
-            # TODO - :(buy handles fractional, negative, and non-numeric shares -
-            if not quantity.is_integer():
-                return apology("Please provide number of shares / quantity not in fractions", 400)
-            if quantity <= 0:
-                return apology("Please provide number of shares / quantity in positive integer", 400)
+
+        # TODO - :(buy handles fractional, negative, and non-numeric shares -
+        if not quantity.is_integer():
+            return apology("Please provide number of shares / quantity not in fractions", 400)
+        if quantity <= 0:
+            return apology("Please provide number of shares / quantity in positive integer", 400)
 
         # Query the IEX Stocks API - # Send the response back to the page
         response = lookup(symbol)
