@@ -98,12 +98,14 @@ def buy():
         symbol = request.form.get("symbol")
         quantity = float(request.form.get("shares"))
 
+        # TODO - :(buy handles fractional, negative, and non-numeric shares - # expected status code 400, but got 200
+
         # Query the IEX Stocks API - # Send the response back to the page
         response = lookup(symbol)
 
         if not response:
             print(response)
-            return apology("Unable to buy now!", 501);
+            return apology("Unable to buy now, Ticket invalid!", 400);
         else:
             # Response - {{response.name}} ({{response.symbol}}) costs ${{response.price}}
             print(response)
@@ -224,7 +226,9 @@ def quote():
         response = lookup(symbol)  # print(response)
 
         # handle invalid Symbol - 400
-
+        if not response:
+            print(response)
+            return apology("Unable to buy now, Ticket invalid!", 400);
 
         # Redirect user back to quote details_page - # {'name': 'Apple Inc', 'price': 149.99, 'symbol': 'AAPL'}
         return render_template("quote.html", response=response)
