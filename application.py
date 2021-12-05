@@ -95,7 +95,7 @@ def buy():
 
     elif request.method == "POST":
 
-        symbol = request.form.get("symbol")
+        symbol = request.form.get("shares")
         quantity = float(request.form.get("quantity"))
 
         # Query the IEX Stocks API - # Send the response back to the page
@@ -127,7 +127,7 @@ def buy():
             # Buy Shares of that stock multiplied by quantity
             total_price = price * quantity
             if user_margin < total_price:
-                return apology("Unable to buy now, Not sufficient cash!", 403);
+                return apology("Unable to buy now, Not sufficient cash!", 400);
             else:
                 # Reduce user margin
                 user_margin = user_margin - total_price
@@ -216,7 +216,7 @@ def quote():
 
     elif request.method == "POST":
 
-        symbol = request.form.get("symbol")
+        symbol = request.form.get("shares")
 
         # Query the IEX Stocks API - # Send the response back to the page
         response = lookup(symbol)  # print(response)
@@ -239,21 +239,21 @@ def register():
         # get the value of username
         username = request.form.get("username")
         if not username:
-            return apology("Unable to register, must provide username", 422)
+            return apology("Unable to register, must provide username", 400)
 
         # get the value for password
         password = request.form.get("password")
         if not password:
-            return apology("Unable to register, must provide password", 422)
+            return apology("Unable to register, must provide password", 400)
 
         # Check whether either password does not matches
         password_again = request.form.get("confirmation")
         if not password_again:
-            return apology("Unable to register, please type password again", 422)
+            return apology("Unable to register, please type password again", 400)
 
         # compare password
         if password_again != password:
-            return apology("Unable to register, passwords do not match", 422)
+            return apology("Unable to register, passwords do not match", 400)
 
         # generate password hash from generate_password_hash to store it in DB
         password_hash = generate_password_hash(password)
