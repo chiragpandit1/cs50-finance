@@ -85,6 +85,7 @@ def render_homepage():
                            asset_total=usd(asset_total),
                            user_holdings=homepage_records)
 
+
 @app.route("/buy", methods=["GET", "POST"])
 @login_required
 def buy():
@@ -314,7 +315,23 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
-    return apology("TODO")
+    # TODO - Get list of stocks which user owns -
+    #   SELECT DISTINCT (asset_ticker),
+    #           SUM(quantity) as quantity,
+    #           SUM(price) AS price
+    #  FROM transaction_details
+    #  WHERE user_id=1
+    #  GROUP BY asset_ticker
+    #  HAVING SUM(quantity) >= 0;
+    assets = db.execute("SELECT DISTINCT (asset_ticker) AS stocks,"
+                        " SUM(quantity) as quantity,"
+                        " SUM(price) AS price"
+                        " FROM transaction_details"
+                        " WHERE user_id=?"
+                        " GROUP BY asset_ticker "
+                        " HAVING SUM(quantity) >= 0", session['user_id'])
+    print(f"{assets}")
+    return render_template("sell.html", assets=assets)
 
 
 def errorhandler(e):

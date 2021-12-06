@@ -32,5 +32,7 @@ Get holdings for that user
 SELECT DISTINCT (asset_ticker), SUM(quantity), SUM(price) FROM transaction_details WHERE user_id=1 GROUP BY asset_ticker;
 
 
+SELECT DISTINCT (asset_ticker), SUM(quantity) as quantity, SUM(price) AS price FROM transaction_details WHERE user_id=1 GROUP BY asset_ticker HAVING SUM(quantity) >= 0;
+
 
 
