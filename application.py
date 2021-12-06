@@ -315,6 +315,7 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
+
     # TODO - Get list of stocks which user owns -
     #   SELECT DISTINCT (asset_ticker),
     #           SUM(quantity) as quantity,
@@ -330,8 +331,55 @@ def sell():
                         " WHERE user_id=?"
                         " GROUP BY asset_ticker "
                         " HAVING SUM(quantity) >= 0", session['user_id'])
-    print(f"{assets}")
-    return render_template("sell.html", assets=assets)
+
+    if request.method == "GET":
+
+        print(f"{assets}")
+        return render_template("sell.html", assets=assets)
+
+    elif request.method == "POST":
+
+        symbol = request.form.get("symbol")
+        print(f"User wants to sell - {symbol}")
+
+        quantity = request.form.get("shares")
+        quantity = int(quantity)
+
+        if quantity <= 0:
+            return apology("Unable to sell a negative / non-zero share", 400)
+
+        # TODO - check if the number of shares user wants to sell is already in their holdings?
+        assets = db.execute("SELECT DISTINCT (asset_ticker) AS stocks,"
+                            " SUM(quantity) as quantity,"
+                            " SUM(price) AS price"
+                            " FROM transaction_details "
+                            " WHERE user_id=? "
+                            " GROUP BY asset_ticker "
+                            " HAVING SUM(quantity) >= 0"
+                            " AND asset_ticker= ? ", session['user_id'], symbol)
+
+        if not assets:
+            return apology("Unable to find the share in your holdings", 400)
+
+        # TODO - if shares exists under users's holdings -> sell the shares
+        if int(assets[0]['quantity']) > 0:
+
+            # TODO - Get stock latest price from the ticker API
+            ticker_details = lookup(symbol)
+            current_share_price = float(ticker_details['price'])
+
+            # TODO - Update the new margin from that stock
+            #  - UPDATE TABLE user SET cash = user_margin WHERE id = session["user_id"]
+            db.execute("UPDATE users SET cash = cash + ? WHERE id = ?", current_share_price, session["user_id"])
+
+            # TODO - Update the record in transactions_details, and holdings TABLES where userID = session
+            db.execute("  INSERT INTO transaction_details "
+                       "   (user_id, asset_ticker, transaction_type, quantity, price, transaction_date) "
+                       "  VALUES (?, ?, 'SELL', ?, ?, datetime('now'))",
+                       session["user_id"], symbol, -quantity, current_share_price)
+
+        flash(f"Sold!")
+        return render_homepage();
 
 
 def errorhandler(e):
