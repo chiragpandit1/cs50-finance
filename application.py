@@ -362,7 +362,12 @@ def sell():
             return apology("Unable to find the share in your holdings", 400)
 
         # TODO - if shares exists under users's holdings -> sell the shares
-        if int(assets[0]['quantity']) > 0:
+        total_user_share_holding = int(assets[0]['quantity'])
+        if total_user_share_holding > 0:
+
+            # TODO - Check whether user has the holdings of shares greater than equal to quantity to be sold
+            if quantity > total_user_share_holding:
+                return apology("Unable to sell, you don't have enough holding for this stock", 400)
 
             # TODO - Get stock latest price from the ticker API
             ticker_details = lookup(symbol)
